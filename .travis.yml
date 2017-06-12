@@ -3,14 +3,18 @@ language: java
 matrix:
   include:
     - os: linux
-      dist: trusty
-      sudo: false
-      addons:
-        apt:
-          packages:
-            - protobuf-compiler
-    - os: osx
-      osx_image: xcode8
+      # dist: trusty
+      sudo: true
+      services:
+        - docker
+      env:
+        - RUN='sudo docker exec -d build'
+      # addons:
+      #   apt:
+      #     packages:
+      #       - protobuf-compiler
+    # - os: osx
+    #   osx_image: xcode8
 
 env:
   global:
@@ -22,10 +26,12 @@ env:
 
 before_install:
   - git submodule foreach --recursive git pull origin master
+  - sudo docker pull centos:centos6
+  - sudo docker run --name build --rm -t centos:centos6 bash
 
 install:
-  - if [ ! -z `find $LIBHDFS_DIR -prune -empty` ]; then python ./install_libhdfs.py; fi
-  - python ./install_xgboost.py
+  - if [ ! -z `find $LIBHDFS_DIR -prune -empty` ]; then $RUN python ./install_libhdfs.py; fi
+  - $RUN python ./install_xgboost.py
 
 script:
   - cd xgboost
